@@ -7,6 +7,7 @@ import {
   Matches,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { BaseResponseDto } from './common-responses.dto';
 
 export class SignupDto {
   @ApiProperty({
@@ -43,4 +44,33 @@ export class SignupDto {
       'Password must contain at least one uppercase letter, one lowercase letter, and one number',
   })
   password: string;
+}
+
+export class UserResponseDto {
+  @ApiProperty({
+    description: 'User ID',
+    example: 1,
+  })
+  id: number;
+
+  @ApiProperty({
+    description: 'User email address',
+    example: 'john.doe@example.com',
+  })
+  email: string;
+
+  @ApiProperty({
+    description: 'User full name',
+    example: 'John Doe',
+  })
+  name: string;
+}
+
+// Extends BaseResponseDto for consistency
+export class SignupResponseDto extends BaseResponseDto {
+  @ApiProperty({
+    description: 'Created user data',
+    type: UserResponseDto,
+  })
+  user: UserResponseDto;
 }
