@@ -1,37 +1,45 @@
-import { Controller, Post, Body, Get } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
-import { UsersService } from './users.service';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import {
-  SignupDto,
-  SignupResponseDto,
-  UserResponseDto,
-} from 'src/common/dto/User';
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
+import { UsersService } from './users.service';
+import { UserResponseDto } from 'src/common/dto/User';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import type { CurrentUserData } from '../auth/decorators/current-user.decorator';
 
 @ApiTags('users')
 @Controller('users')
 export class UsersController {
   constructor(private readonly userService: UsersService) {}
 
-  @Post('signup')
-  @ApiOperation({ summary: 'Register a new user' })
-  @ApiBody({ type: SignupDto })
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get current user profile' })
   @ApiResponse({
-    status: 201,
-    description: 'User successfully created',
-    type: SignupResponseDto,
+    status: 200,
+    description: 'Current user profile',
+    type: UserResponseDto,
   })
-  @ApiResponse({ status: 400, description: 'Bad request - Invalid input' })
-  @ApiResponse({ status: 409, description: 'Conflict - User already exists' })
-  createUser(@Body() createUserDto: SignupDto) {
-    return this.userService.signup(createUserDto);
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async getCurrentUser(@CurrentUser() user: CurrentUserData) {
+    return this.userService.findById(user.userId);
   }
+
   @Get()
-  @ApiOperation({ summary: 'Get all users' })
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get all users (protected route)' })
   @ApiResponse({
     status: 200,
     description: 'List of all users',
     type: [UserResponseDto],
   })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   getAllUsers() {
     return this.userService.getAllUsers();
   }

@@ -67,11 +67,7 @@ export class UsersService {
       .where(eq(users.email, email))
       .limit(1);
 
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    return user;
+    return user || null;
   }
 
   // Public method - excludes password
